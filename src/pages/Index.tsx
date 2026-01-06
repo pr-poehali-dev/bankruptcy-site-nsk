@@ -286,8 +286,8 @@ const Index = () => {
             </div>
             <div className="animate-scale-in">
               <img
-                src="https://cdn.poehali.dev/projects/90a9cc7f-ff16-449d-9751-2c621e231101/files/00ffaff6-eb2c-4554-bbd8-be3edee07ced.jpg"
-                alt="Свобода от долгов"
+                src="https://static.tildacdn.com/tild3762-6363-4239-b139-376663393163/photo.png"
+                alt="Алина Поскотина - основатель"
                 className="rounded-3xl shadow-2xl"
               />
             </div>
