@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,18 @@ const Index = () => {
   const [debtAmount, setDebtAmount] = useState(1000000);
   const [creditorsCount, setCreditorsCount] = useState(3);
   const [hasProperty, setHasProperty] = useState(false);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [bookingForm, setBookingForm] = useState({ name: '', phone: '', email: '', date: '', time: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (isMobileMenuOpen || isBookingOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [isMobileMenuOpen, isBookingOpen]);
 
   const calculatePrice = () => {
     let basePrice = 35000;
@@ -26,7 +38,19 @@ const Index = () => {
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
+      setIsMobileMenuOpen(false);
     }
+  };
+
+  const handleBookingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setIsBookingOpen(false);
+      setBookingForm({ name: '', phone: '', email: '', date: '', time: '' });
+      alert('Заявка отправлена! Мы свяжемся с вами в ближайшее время.');
+    }, 1500);
   };
 
   return (
@@ -40,7 +64,7 @@ const Index = () => {
               </div>
               <span className="text-2xl font-heading font-bold text-secondary">Банкрот и Точка</span>
             </div>
-            <div className="hidden md:flex gap-8">
+            <div className="hidden lg:flex gap-8">
               {['Процесс', 'Услуги', 'Кейсы', 'Команда', 'FAQ', 'Блог', 'Контакты'].map((item) => (
                 <button
                   key={item}
@@ -51,13 +75,169 @@ const Index = () => {
                 </button>
               ))}
             </div>
-            <Button className="bg-primary hover:bg-primary/90">
-              <Icon name="Phone" size={18} className="mr-2" />
-              8 800 550 50 39
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button className="hidden sm:flex bg-primary hover:bg-primary/90" asChild>
+                <a href="tel:88005505039">
+                  <Icon name="Phone" size={18} className="mr-2" />
+                  <span className="hidden md:inline">8 800 550 50 39</span>
+                </a>
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                <Icon name={isMobileMenuOpen ? "X" : "Menu"} size={24} />
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
+
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)}></div>
+          <div className="fixed right-0 top-0 bottom-0 w-80 max-w-full bg-white shadow-2xl animate-slide-in-right overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-8">
+                <span className="text-xl font-heading font-bold">Меню</span>
+                <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Icon name="X" size={24} />
+                </Button>
+              </div>
+              <nav className="space-y-4">
+                {['Процесс', 'Услуги', 'Кейсы', 'Команда', 'FAQ', 'Блог', 'Контакты'].map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => scrollToSection(item.toLowerCase())}
+                    className="block w-full text-left px-4 py-3 text-lg font-medium text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                  >
+                    {item}
+                  </button>
+                ))}
+              </nav>
+              <div className="mt-8 space-y-3">
+                <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => { setIsBookingOpen(true); setIsMobileMenuOpen(false); }}>
+                  <Icon name="Calendar" size={18} className="mr-2" />
+                  Записаться на консультацию
+                </Button>
+                <Button variant="outline" className="w-full" asChild>
+                  <a href="tel:88005505039">
+                    <Icon name="Phone" size={18} className="mr-2" />
+                    8 800 550 50 39
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isBookingOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60" onClick={() => setIsBookingOpen(false)}></div>
+          <Card className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-scale-in">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-2xl">Запись на консультацию</CardTitle>
+                  <CardDescription>Выберите удобное время, и мы вам перезвоним</CardDescription>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setIsBookingOpen(false)}>
+                  <Icon name="X" size={24} />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleBookingSubmit} className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="booking-name">Ваше имя *</Label>
+                    <Input
+                      id="booking-name"
+                      required
+                      value={bookingForm.name}
+                      onChange={(e) => setBookingForm({ ...bookingForm, name: e.target.value })}
+                      placeholder="Иван Иванов"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="booking-phone">Телефон *</Label>
+                    <Input
+                      id="booking-phone"
+                      required
+                      type="tel"
+                      value={bookingForm.phone}
+                      onChange={(e) => setBookingForm({ ...bookingForm, phone: e.target.value })}
+                      placeholder="+7 (999) 123-45-67"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="booking-email">Email</Label>
+                  <Input
+                    id="booking-email"
+                    type="email"
+                    value={bookingForm.email}
+                    onChange={(e) => setBookingForm({ ...bookingForm, email: e.target.value })}
+                    placeholder="ivan@example.com"
+                  />
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="booking-date">Предпочитаемая дата *</Label>
+                    <Input
+                      id="booking-date"
+                      required
+                      type="date"
+                      value={bookingForm.date}
+                      onChange={(e) => setBookingForm({ ...bookingForm, date: e.target.value })}
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="booking-time">Предпочитаемое время *</Label>
+                    <Input
+                      id="booking-time"
+                      required
+                      type="time"
+                      value={bookingForm.time}
+                      onChange={(e) => setBookingForm({ ...bookingForm, time: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="bg-primary/5 p-4 rounded-lg">
+                  <div className="flex gap-3 mb-2">
+                    <Icon name="Info" className="text-primary flex-shrink-0" size={20} />
+                    <div className="text-sm">
+                      <p className="font-semibold mb-1">Консультация бесплатная</p>
+                      <p className="text-foreground/70">Мы свяжемся с вами в указанное время и ответим на все вопросы о процедуре банкротства</p>
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Icon name="Loader2" size={20} className="mr-2 animate-spin" />
+                      Отправка...
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="Send" size={20} className="mr-2" />
+                      Записаться на консультацию
+                    </>
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <section className="pt-32 pb-20 px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-transparent"></div>
@@ -67,37 +247,40 @@ const Index = () => {
               <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20">
                 ✨ Новосибирск • Гарантируем результат
               </Badge>
-              <h1 className="text-6xl font-heading font-bold mb-6 leading-tight">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold mb-6 leading-tight">
                 Со мной вы{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-primary">
                   под защитой закона
                 </span>
               </h1>
-              <p className="text-xl text-foreground/70 mb-8">
+              <p className="text-lg sm:text-xl text-foreground/70 mb-8">
                 Списание долгов через процедуру банкротства. Личная консультация и поддержка основателя. Без скрытых расходов.
               </p>
               <div className="flex gap-4 flex-wrap">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg px-8" onClick={() => scrollToSection('калькулятор')}>
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-base sm:text-lg px-6 sm:px-8" onClick={() => scrollToSection('калькулятор')}>
                   Рассчитать стоимость
                   <Icon name="Calculator" size={20} className="ml-2" />
                 </Button>
-                <Button size="lg" variant="outline" className="text-lg px-8">
-                  <Icon name="Send" size={20} className="mr-2" />
-                  Telegram: @poskotina_bfl
+                <Button size="lg" variant="outline" className="text-base sm:text-lg px-6 sm:px-8" asChild>
+                  <a href="https://t.me/poskotina_bfl" target="_blank" rel="noopener noreferrer">
+                    <Icon name="Send" size={20} className="mr-2" />
+                    <span className="hidden sm:inline">Telegram: @poskotina_bfl</span>
+                    <span className="sm:hidden">Telegram</span>
+                  </a>
                 </Button>
               </div>
-              <div className="flex gap-8 mt-12 flex-wrap">
+              <div className="grid grid-cols-3 gap-4 sm:gap-8 mt-12">
                 <div>
-                  <div className="text-4xl font-heading font-bold text-primary">500+</div>
-                  <div className="text-sm text-foreground/60">Успешных дел</div>
+                  <div className="text-3xl sm:text-4xl font-heading font-bold text-primary">500+</div>
+                  <div className="text-xs sm:text-sm text-foreground/60">Успешных дел</div>
                 </div>
                 <div>
-                  <div className="text-4xl font-heading font-bold text-primary">100%</div>
-                  <div className="text-sm text-foreground/60">Гарантия результата</div>
+                  <div className="text-3xl sm:text-4xl font-heading font-bold text-primary">100%</div>
+                  <div className="text-xs sm:text-sm text-foreground/60">Гарантия результата</div>
                 </div>
                 <div>
-                  <div className="text-4xl font-heading font-bold text-primary">0₽</div>
-                  <div className="text-sm text-foreground/60">Скрытых платежей</div>
+                  <div className="text-3xl sm:text-4xl font-heading font-bold text-primary">0₽</div>
+                  <div className="text-xs sm:text-sm text-foreground/60">Скрытых платежей</div>
                 </div>
               </div>
             </div>
@@ -114,7 +297,7 @@ const Index = () => {
 
       <section className="py-16 px-6 bg-white">
         <div className="container mx-auto">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               { icon: 'Award', title: 'Гарантируем результат', desc: 'Работаем до полного списания долгов' },
               { icon: 'Heart', title: 'С душой и заботой', desc: 'Личная поддержка на каждом этапе' },
@@ -138,12 +321,12 @@ const Index = () => {
         <div className="container mx-auto">
           <div className="text-center mb-16 animate-fade-in">
             <Badge className="mb-4">Этапы работы</Badge>
-            <h2 className="text-5xl font-heading font-bold mb-4">Как проходит процесс</h2>
-            <p className="text-xl text-foreground/60 max-w-2xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold mb-4">Как проходит процесс</h2>
+            <p className="text-base sm:text-lg lg:text-xl text-foreground/60 max-w-2xl mx-auto">
               Прозрачная процедура из 5 шагов — вы всегда знаете, на каком этапе находится ваше дело
             </p>
           </div>
-          <div className="grid md:grid-cols-5 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {[
               { icon: 'FileSearch', title: 'Анализ', desc: 'Изучаем вашу ситуацию и документы', color: 'from-blue-500 to-cyan-500' },
               { icon: 'FileText', title: 'Документы', desc: 'Собираем и готовим пакет для суда', color: 'from-purple-500 to-pink-500' },
@@ -171,8 +354,8 @@ const Index = () => {
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12 animate-fade-in">
             <Badge className="mb-4 bg-primary text-white">Калькулятор</Badge>
-            <h2 className="text-5xl font-heading font-bold mb-4">Рассчитайте стоимость</h2>
-            <p className="text-xl text-foreground/60">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold mb-4">Рассчитайте стоимость</h2>
+            <p className="text-base sm:text-lg lg:text-xl text-foreground/60">
               Узнайте примерную стоимость процедуры банкротства за 30 секунд
             </p>
           </div>
@@ -223,7 +406,7 @@ const Index = () => {
 
               <div className="bg-gradient-to-br from-primary to-accent p-8 rounded-2xl text-white text-center">
                 <div className="text-lg mb-2">Примерная стоимость услуги</div>
-                <div className="text-5xl font-heading font-bold mb-4">{calculatePrice()} ₽</div>
+                <div className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold mb-4">{calculatePrice()} ₽</div>
                 <p className="text-white/80 mb-6">Точная стоимость рассчитывается после консультации</p>
                 <Button size="lg" className="bg-white text-primary hover:bg-white/90">
                   Получить консультацию
@@ -239,9 +422,9 @@ const Index = () => {
         <div className="container mx-auto">
           <div className="text-center mb-16 animate-fade-in">
             <Badge className="mb-4">Наши услуги</Badge>
-            <h2 className="text-5xl font-heading font-bold mb-4">Что мы предлагаем</h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold mb-4">Что мы предлагаем</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
                 icon: 'FileCheck',
@@ -297,9 +480,9 @@ const Index = () => {
         <div className="container mx-auto">
           <div className="text-center mb-16 animate-fade-in">
             <Badge className="mb-4">Истории успеха</Badge>
-            <h2 className="text-5xl font-heading font-bold mb-4">Реальные кейсы</h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold mb-4">Реальные кейсы</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               { name: 'Анна К.', debt: '2.3 млн ₽', result: 'Списано 100%', time: '5 месяцев', category: 'Кредиты' },
               { name: 'Михаил С.', debt: '4.8 млн ₽', result: 'Списано 100%', time: '7 месяцев', category: 'ИП + кредиты' },
@@ -343,7 +526,7 @@ const Index = () => {
         <div className="container mx-auto">
           <div className="text-center mb-16 animate-fade-in">
             <Badge className="mb-4">Основатель</Badge>
-            <h2 className="text-5xl font-heading font-bold mb-4">Алина Поскотина</h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold mb-4">Алина Поскотина</h2>
             <p className="text-xl text-foreground/60">Юрист по банкротству с личным подходом к каждому клиенту</p>
           </div>
           <div className="max-w-3xl mx-auto">
@@ -387,7 +570,7 @@ const Index = () => {
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-16 animate-fade-in">
             <Badge className="mb-4">FAQ</Badge>
-            <h2 className="text-5xl font-heading font-bold mb-4">Частые вопросы</h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold mb-4">Частые вопросы</h2>
           </div>
           <Accordion type="single" collapsible className="space-y-4">
             {[
@@ -429,9 +612,9 @@ const Index = () => {
         <div className="container mx-auto">
           <div className="text-center mb-16 animate-fade-in">
             <Badge className="mb-4">Блог</Badge>
-            <h2 className="text-5xl font-heading font-bold mb-4">Полезные материалы</h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold mb-4">Полезные материалы</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               { title: 'Как подготовиться к банкротству', date: '15 декабря 2024', category: 'Гайд' },
               { title: 'Топ-5 ошибок при банкротстве', date: '10 декабря 2024', category: 'Советы' },
@@ -458,7 +641,7 @@ const Index = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16 animate-fade-in">
             <Badge className="mb-4">Контакты</Badge>
-            <h2 className="text-5xl font-heading font-bold mb-4">Свяжитесь с нами</h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold mb-4">Свяжитесь с нами</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-12">
             <div className="space-y-6 animate-fade-in">
