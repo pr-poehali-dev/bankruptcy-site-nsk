@@ -534,7 +534,7 @@ const Index = () => {
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="p-6">
                   <img
-                    src="https://cdn.poehali.dev/projects/90a9cc7f-ff16-449d-9751-2c621e231101/files/96a536a0-e5f5-4d2f-88e8-3f8c766e9756.jpg"
+                    src="https://static.tildacdn.com/tild3762-6363-4239-b139-376663393163/photo.png"
                     alt="Алина Поскотина"
                     className="w-full h-full object-cover rounded-xl"
                   />
